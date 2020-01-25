@@ -4,14 +4,19 @@
 #include <boards.h>
 #include <RBL_nRF8001.h>
 #include <Regexp.h> // https://www.arduinolibraries.info/libraries/regexp
+#include <Stepper.h>
 
 struct SimpleAlarm {
   bool isActive;
   int hour, minute, second;
 };
 
+// ULN2003 Driver Board Module + 28BYJ-48
+const int stepsPerRevolution = 2038; // https://www.seeedstudio.com/blog/2019/03/04/driving-a-28byj-48-stepper-motor-with-a-uln2003-driver-board-and-arduino/
+Stepper myStepper(stepsPerRevolution, 2, 4, 3, 5); // https://forum.arduino.cc/index.php?topic=143276.0
 const int BUF_SIZE = 32;
 const int MAX_ALARMS = 8;
+int speed = 10;
 SimpleAlarm alarms[MAX_ALARMS];
 
 void setup()
@@ -35,7 +40,17 @@ void setup()
     EEPROM.get(i * sizeof(SimpleAlarm), alarms[i]);
   }
 
+  myStepper.setSpeed(speed);
+
   // pinMode(7, OUTPUT);
+}
+
+void lowStepper()
+{
+  digitalWrite(2, LOW);
+  digitalWrite(3, LOW);
+  digitalWrite(4, LOW);
+  digitalWrite(5, LOW);
 }
 
 void out(const String& str)
@@ -125,6 +140,7 @@ void handleInput(char* buf)
   ms.Target(buf);  // what to search
   SimpleAlarm t;
   int slot;
+  int steps;
 
   if(strcmp(buf, "reset") == 0)
   {
@@ -139,6 +155,30 @@ void handleInput(char* buf)
     ms.GetCapture(bufMatch, 0);
     slot = atoi(bufMatch);
     removeAlarm(slot);
+  }
+  else if( ms.Match("l(%d+)", 0) == REGEXP_MATCHED)
+  {
+    ms.GetCapture(bufMatch, 0);
+    steps = atoi(bufMatch);
+    out(String("Stepping left ") + steps);
+    myStepper.step(steps);
+    delay(500);
+    lowStepper();
+  }
+  else if( ms.Match("r(%d+)", 0) == REGEXP_MATCHED)
+  {
+    ms.GetCapture(bufMatch, 0);
+    steps = -1 * atoi(bufMatch);
+    out(String("Stepping right ") + steps);
+    myStepper.step(steps);
+    delay(500);
+    lowStepper();
+  }
+  else if( ms.Match("s(%d+)", 0) == REGEXP_MATCHED)
+  {
+    ms.GetCapture(bufMatch, 0);
+    speed = atoi(bufMatch);
+    myStepper.setSpeed(speed);
   }
   else if( ms.Match("(%d+) (%d+):(%d+):(%d+)", 0) == REGEXP_MATCHED)
   {
@@ -190,7 +230,6 @@ void loop()
   }
 
   ble_do_events();
-
  // digitalWrite(activeLed, HIGH);
  // delay(100);
 }
