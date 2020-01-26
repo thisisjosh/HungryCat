@@ -6,11 +6,11 @@
 #include <Regexp.h> // https://www.arduinolibraries.info/libraries/regexp
 #include <Stepper.h>
 #include <ThreeWire.h> 
-#include <RtcDS1302.h>
+#include <RtcDS1302.h> // https://github.com/Makuna/Rtc
 
 struct SimpleAlarm {
   bool isActive;
-  int hour, minute, second;
+  int hour, minute;
 };
 
 // ULN2003 Driver Board Module + 28BYJ-48
@@ -19,7 +19,9 @@ Stepper myStepper(stepsPerRevolution, 2, 4, 3, 5); // https://forum.arduino.cc/i
 const int BUF_SIZE = 32;
 const int MAX_ALARMS = 8;
 int speed = 10;
+int sliceSteps = 255;
 SimpleAlarm alarms[MAX_ALARMS];
+RtcDateTime lastAlarmTriggered;
 
 // DS1302 DAT/IO - orange 7
 // DS1302 CLK/SCLK - brown 6
@@ -42,7 +44,7 @@ void printDateTime(const RtcDateTime& dt)
             dt.Hour(),
             dt.Minute(),
             dt.Second() );
-    Serial.print(datestring);
+    out(String(datestring) + '\n');
 }
 
 void setupRtc()
@@ -119,6 +121,8 @@ void setup()
   myStepper.setSpeed(speed);
   setupRtc();
 
+  lastAlarmTriggered = Rtc.GetDateTime();
+
   // pinMode(7, OUTPUT);
 }
 
@@ -158,7 +162,6 @@ void resetAlarms()
     alarms[i].isActive = false;
     alarms[i].hour = 0;
     alarms[i].minute = 0;
-    alarms[i].second = 0;
     EEPROM.put(i * sizeof(SimpleAlarm), alarms[i]); // save to disk
   }
 
@@ -169,7 +172,7 @@ void listAlarms()
 {
   for(int i = 0; i < MAX_ALARMS; i++)
   {
-    String msg = String("alarm ") + i + " " + alarms[i].hour + ":" + alarms[i].minute + ":" + alarms[i].second;
+    String msg = String("alarm ") + i + " " + alarms[i].hour + ":" + alarms[i].minute;
     if(alarms[i].isActive)
     {
       msg += " on";
@@ -186,7 +189,7 @@ int findAlarm(SimpleAlarm t)
 {
   for(int i = 0; i < MAX_ALARMS; i++)
   {
-    if(alarms[i].hour == t.hour && alarms[i].minute == t.minute && alarms[i].second == t.second)
+    if(alarms[i].hour == t.hour && alarms[i].minute == t.minute)
       return i;
   }
 
@@ -205,14 +208,37 @@ void removeAlarm(int i)
   alarms[i].isActive = false;
   alarms[i].hour = 0;
   alarms[i].minute = 0;
-  alarms[i].second = 0;
   EEPROM.put(i * sizeof(SimpleAlarm), alarms[i]);
   out(String("Removed alarm ") + i);
 }
 
+void doAlarms()
+{
+  RtcDateTime now = Rtc.GetDateTime();
+
+  for(int i = 0; i < MAX_ALARMS; i++)
+  {
+    if(now.TotalSeconds() <= (lastAlarmTriggered.TotalSeconds() + 61) )
+    {
+      break; // Only trigger an alarm once per minnute
+    }
+    
+    if(alarms[i].isActive == true && alarms[i].hour == now.Hour() && alarms[i].minute == now.Minute())
+    {
+      out(String("Alarm Triggered ") + i);
+      myStepper.step(sliceSteps);
+      delay(500);
+      lowStepper();
+      lastAlarmTriggered = now;
+      break;
+    }
+  }
+}
+
 void handleInput(char* buf)
 {
-  char bufMatch[8];
+  char bufMatch[16];
+  char bufMatch2[16];
   MatchState ms;
   ms.Target(buf);  // what to search
   SimpleAlarm t;
@@ -271,7 +297,7 @@ void handleInput(char* buf)
     speed = atoi(bufMatch);
     myStepper.setSpeed(speed);
   }
-  else if( ms.Match("(%d+) (%d+):(%d+):(%d+)", 0) == REGEXP_MATCHED)
+  else if( ms.Match("(%d+) (%d+):(%d+)", 0) == REGEXP_MATCHED)
   {
     ms.GetCapture (bufMatch, 0);
     slot = atoi(bufMatch);
@@ -281,25 +307,16 @@ void handleInput(char* buf)
     
     ms.GetCapture (bufMatch, 2);
     t.minute = atoi(bufMatch);
-    
-    ms.GetCapture (bufMatch, 3);
-    t.second = atoi(bufMatch);
 
     t.isActive = true;
     setAlarm(slot, t);
   }
-  else if( ms.Match("now (%d+):(%d+):(%d+)", 0) == REGEXP_MATCHED)
+  else if( ms.Match("now (.+),(%d+:%d+:%d+)", 0) == REGEXP_MATCHED)
   {
-    ms.GetCapture (bufMatch, 0);
-    t.hour = atoi(bufMatch);
-    
-    ms.GetCapture (bufMatch, 1);
-    t.minute = atoi(bufMatch);
-    
-    ms.GetCapture (bufMatch, 2);
-    t.second = atoi(bufMatch);
-
-    // TODO
+    ms.GetCapture(bufMatch, 0);
+    ms.GetCapture(bufMatch2, 1);
+    RtcDateTime newTime = RtcDateTime(bufMatch, bufMatch2);
+    Rtc.SetDateTime(newTime);
   }
   else
   {
@@ -334,7 +351,8 @@ void loop()
   }
 
   ble_do_events();
+  doAlarms();
  // digitalWrite(activeLed, HIGH);
- // delay(100);
+  delay(500);
 }
 
