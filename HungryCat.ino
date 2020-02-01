@@ -104,7 +104,8 @@ void setup()
   //ble_set_pins(3, 2);
   
   // Set your BLE Shield name here, max. length 10
-  // ble_set_name("HungryCat");
+  char bleName[] = "HungryCat";
+  ble_set_name(bleName);
   
   // Init. and start BLE library.
   ble_begin();
