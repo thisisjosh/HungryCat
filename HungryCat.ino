@@ -35,16 +35,19 @@ void printDateTime(const RtcDateTime& dt)
 {
     char datestring[20];
 
+    // This should be changed to UTC. Using PST to make this easy on me.
+    // Use a format that js likes 2020-02-02T10:52:37
     snprintf_P(datestring, 
             countof(datestring),
-            PSTR("%02u-%02u-%04u %02u:%02u:%02u"),
+            PSTR("%04u-%02u-%02uT%02u:%02u:%02u"),
+            dt.Year(),
             dt.Month(),
             dt.Day(),
-            dt.Year(),
             dt.Hour(),
             dt.Minute(),
             dt.Second() );
-    out(String(datestring) + '\n');
+    out(String(datestring));
+    out(String('\n'));
 }
 
 void setupRtc()
@@ -268,8 +271,8 @@ void handleInput(char* buf)
   }
   else if(strcmp(buf, "list") == 0)
   {
-    showCurrentTime();
     listAlarms();
+    showCurrentTime();
   }
   else if(strcmp(buf, "now") == 0)
   {
@@ -328,7 +331,6 @@ void handleInput(char* buf)
     RtcDateTime newTime = RtcDateTime(timeNow);
     Rtc.SetDateTime(newTime);
     out(String("clock updated to ") + " " + timeNow);
-    showCurrentTime();
   }
   else
   {

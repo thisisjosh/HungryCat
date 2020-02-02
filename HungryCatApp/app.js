@@ -42,8 +42,10 @@ app.onOffChanged = function(alarmNum)
 	app.setAlarm(alarmNum);
 }
 
-app.updateClock = function()
+// oldDate format: 22020-02-02T10:55:50-0800
+app.updateClock = function(oldDate)
 {
+	var oldDate = new Date(oldDate); // TODO: fix this
 	var date = new Date();
 	var y2k = Math.round((new Date(2000, 0, 1, 0, 0, 0)).getTime() / 1000);
 	var secondsSinceEpoch = Math.round(date.getTime() / 1000);
@@ -51,6 +53,17 @@ app.updateClock = function()
 	var message = "now " +  secondsSince2000;
 	console.log("updating the clock: "+ message);
 	app.sendMessageBle(message);
+
+	if(oldDate.getTime() > date.getTime()){
+		var dif = oldDate.getTime() - date.getTime();
+		var difSeconds = Math.abs(dif / 1000);
+		console.log("RTC is fast: " + difSeconds + " seconds");
+	}
+	else {
+		var dif = date.getTime() - oldDate.getTime();
+		var difSeconds = Math.abs(dif / 1000);
+		console.log("RTC is slow: " + difSeconds + " seconds");
+	}
 }
 
 app.sendMessageBle = function(message)
@@ -251,7 +264,7 @@ app.startScan = function()
 app.receivedMessage = function(data)
 {
 	var alarmRegex = /alarm (\d) (\d+):(\d+) (\d)/; // alarm 2 18:30 1
-	var nowRegex = /\d\d-\d\d-\d\d\d\d \d\d:\d\d:\d\d/; // 02-01-2020 20:47:40
+	var nowRegex = /\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d/; //2020-02-02T10:55:50
 
 	if (app.connected)
 	{
@@ -273,6 +286,7 @@ app.receivedMessage = function(data)
 		else if(message.match(nowRegex) != null){
 			$('#deviceClock').text(message);
 			console.log('found rtc is ' + message);
+			app.updateClock(message + "-0800"); // Assuming PST for now, but this should be changed to UTC
 		}
 
 		// deviceClock
