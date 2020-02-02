@@ -1,0 +1,13 @@
+.alarm {
+    margin-top:10px;
+    margin-bottom: 10px;
+}
+
+.alarmTime {
+    height: 40px;
+    width: 300px;
+}
+
+.onOff {
+    height: 40px;
+}

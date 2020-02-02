@@ -1,0 +1,38 @@
+{
+  "name": "hungry-cat-app",
+  "version": "1.0.0",
+  "title": "Hungry Cat App",
+  "description": "App to set Hugnry Cat feeding alarms",
+  "tags": [
+    {
+      "label": "arduino",
+      "type": "platform"
+    },
+    {
+      "label": "thisisjosh",
+      "type": "vendor"
+    },
+    {
+      "label": "ble",
+      "type": "comm"
+    }
+  ],
+  "libraries": [
+    {
+      "name": "jquery",
+      "version": "2.1.1"
+    }
+  ],
+  "plugins": [
+    {
+      "name": "cordova-plugin-ble",
+      "version": "2.0.0"
+    }
+  ],
+  "index-file": "index.html",
+  "uuid": "0e57960e-afbc-4b2c-b227-be195d5203bb",
+  "icon": "app-icon.png",
+  "doc-url": "http://github.io/thisisjosh",
+  "long-description": "App to set Hugnry Cat feeding alarms.",
+  "cordova-id": "com.thisisjosh.hungrycat.hungrycatapp"
+}

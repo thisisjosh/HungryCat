@@ -17,7 +17,7 @@ struct SimpleAlarm {
 const int stepsPerRevolution = 2038; // https://www.seeedstudio.com/blog/2019/03/04/driving-a-28byj-48-stepper-motor-with-a-uln2003-driver-board-and-arduino/
 Stepper myStepper(stepsPerRevolution, 2, 4, 3, 5); // https://forum.arduino.cc/index.php?topic=143276.0
 const int BUF_SIZE = 32;
-const int MAX_ALARMS = 8;
+const int MAX_ALARMS = 4;
 int speed = 10;
 int sliceSteps = 255;
 SimpleAlarm alarms[MAX_ALARMS];
@@ -37,7 +37,7 @@ void printDateTime(const RtcDateTime& dt)
 
     snprintf_P(datestring, 
             countof(datestring),
-            PSTR("%02u/%02u/%04u %02u:%02u:%02u"),
+            PSTR("%02u-%02u-%04u %02u:%02u:%02u"),
             dt.Month(),
             dt.Day(),
             dt.Year(),
@@ -49,7 +49,7 @@ void printDateTime(const RtcDateTime& dt)
 
 void setupRtc()
 {
-  Serial.print("compiled: ");
+    Serial.print("compiled: ");
     Serial.print(__DATE__);
     Serial.println(__TIME__);
 
@@ -176,11 +176,11 @@ void listAlarms()
     String msg = String("alarm ") + i + " " + alarms[i].hour + ":" + alarms[i].minute;
     if(alarms[i].isActive)
     {
-      msg += " on";
+      msg += " 1";
     }
     else
     {
-      msg += " off";
+      msg += " 0";
     }
     out(msg);
   }
@@ -201,7 +201,7 @@ void setAlarm(int i, SimpleAlarm t)
 {
   alarms[i] = t;
   EEPROM.put(i * sizeof(SimpleAlarm), alarms[i]); // save to disk
-  out(String("Set alarm ") + i);
+  out(String("Set alarm ") + i + " " + alarms[i].hour + ":" + alarms[i].minute + " " + alarms[i].isActive);
 }
 
 void removeAlarm(int i)
@@ -236,6 +236,21 @@ void doAlarms()
   }
 }
 
+void showCurrentTime()
+{
+  RtcDateTime now = Rtc.GetDateTime();
+
+  printDateTime(now);
+  Serial.println();
+
+  if (!now.IsValid())
+  {
+      // Common Causes:
+      //    1) the battery on the device is low or even missing and the power line was disconnected
+      Serial.println("RTC lost confidence in the DateTime!");
+  }
+}
+
 void handleInput(char* buf)
 {
   char bufMatch[16];
@@ -245,6 +260,7 @@ void handleInput(char* buf)
   SimpleAlarm t;
   int slot;
   int steps;
+  uint32_t timeNow;
 
   if(strcmp(buf, "reset") == 0)
   {
@@ -252,21 +268,12 @@ void handleInput(char* buf)
   }
   else if(strcmp(buf, "list") == 0)
   {
+    showCurrentTime();
     listAlarms();
   }
   else if(strcmp(buf, "now") == 0)
   {
-    RtcDateTime now = Rtc.GetDateTime();
-
-    printDateTime(now);
-    Serial.println();
-
-    if (!now.IsValid())
-    {
-        // Common Causes:
-        //    1) the battery on the device is low or even missing and the power line was disconnected
-        Serial.println("RTC lost confidence in the DateTime!");
-    }
+    showCurrentTime();
   }
   else if( ms.Match("remove (%d+)", 0) == REGEXP_MATCHED)
   {
@@ -298,7 +305,7 @@ void handleInput(char* buf)
     speed = atoi(bufMatch);
     myStepper.setSpeed(speed);
   }
-  else if( ms.Match("(%d+) (%d+):(%d+)", 0) == REGEXP_MATCHED)
+  else if( ms.Match("(%d+) (%d+):(%d+) (%d+)", 0) == REGEXP_MATCHED)
   {
     ms.GetCapture (bufMatch, 0);
     slot = atoi(bufMatch);
@@ -309,15 +316,19 @@ void handleInput(char* buf)
     ms.GetCapture (bufMatch, 2);
     t.minute = atoi(bufMatch);
 
-    t.isActive = true;
+    ms.GetCapture (bufMatch, 3);
+    t.isActive = atoi(bufMatch);
+
     setAlarm(slot, t);
   }
-  else if( ms.Match("now (.+),(%d+:%d+:%d+)", 0) == REGEXP_MATCHED)
+  else if( ms.Match("now (%d+)", 0) == REGEXP_MATCHED)
   {
     ms.GetCapture(bufMatch, 0);
-    ms.GetCapture(bufMatch2, 1);
-    RtcDateTime newTime = RtcDateTime(bufMatch, bufMatch2);
+    timeNow = strtoul(bufMatch,NULL,10);
+    RtcDateTime newTime = RtcDateTime(timeNow);
     Rtc.SetDateTime(newTime);
+    out(String("clock updated to ") + " " + timeNow);
+    showCurrentTime();
   }
   else
   {

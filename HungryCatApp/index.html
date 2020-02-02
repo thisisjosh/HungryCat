@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, user-scalable=no,
+		shrink-to-fit=no, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0" />
+	<title>HungryCatAppst</title>
+	<style>
+		@import 'ui/css/evothings-app.css';
+		@import 'ui/css/alarms.css';
+		@import 'app.css';
+	</style>
+	<script>
+	if (window.hyper && window.hyper.log) { console.log = hyper.log } // Redirect console.log to Evothings Workbench.
+	</script>
+	<script src="cordova.js"></script>
+	<script src="libs/evothings/evothings.js"></script>
+	<script src="libs/evothings/ui/ui.js"></script>
+	<script src="libs/evothings/easyble/easyble.js"></script>
+	<script src="libs/jquery/jquery.js"></script>
+	<script src="app.js"></script>
+</head>
+<body ontouchstart="">
+	<header>
+		<button class="back" onclick="history.back()">
+			<img src="ui/images/arrow-left.svg" />
+		</button> <!-- <img class="logotype" src="ui/images/logo.svg" alt="Evothings" /> -->
+	</header>
+	<h1>Hungry Cat App</h1>
+
+	<div id="startView">
+		<!-- <img class="center" src="img/RedBearLab.jpg"> -->
+		<button class="red wide" onclick="app.startScan()">Scan for HungryCat</button>
+	</div>
+	<div id="scanResultView" style="display:none"></div>
+	<div id="conversationView" style="display:none">
+
+		<div class="alarm">
+			<input type="time" class="alarmTime" id="time0" onChange="app.onAlarmTimeChange('0')">
+			<select class="onOff" id="onOff0" onChange="app.onOffChanged('0')">
+				<option value="0">OFF</option>
+				<option value="1">ON</option>
+			  </select>
+		</div>
+
+		<div class="alarm">
+			<input type="time" class="alarmTime" id="time1" onChange="app.onAlarmTimeChange('1')">
+			<select class="onOff" id="onOff1" onChange="app.onOffChanged('1')">
+				<option value="0">OFF</option>
+				<option value="1">ON</option>
+			  </select>
+		</div>
+
+		<div class="alarm">
+			<input type="time" class="alarmTime" id="time2" onChange="app.onAlarmTimeChange('2')">
+			<select class="onOff" id="onOff2" onChange="app.onOffChanged('2')">
+				<option value="0">OFF</option>
+				<option value="1">ON</option>
+			  </select>
+		</div>
+
+		<div class="alarm">
+			<input type="time" class="alarmTime" id="time3" onChange="app.onAlarmTimeChange('3')">
+			<select class="onOff" id="onOff3" onChange="app.onOffChanged('3')">
+				<option value="0">OFF</option>
+				<option value="1">ON</option>
+			  </select>
+		</div>
+
+		<div id="deviceClock"></div>
+		<button id="updateClockButton" class="green" onclick="app.updateClock()">Update Clock</button>
+		<button id="disconnectButton" class="red wide" onclick="app.disconnect()">Disconnect</button>
+
+		<div id="conversationControl" style="width:100%"></div>
+		<div id="conversation"></div>
+	</div>
+
+	<div id="loadingView" style="display:none">
+		<div id="loadingIndicator"><img src="img/loader.gif" /><p id="loadingStatus"></p></div>
+	</div>
+</body>
+</html>
