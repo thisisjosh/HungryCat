@@ -43,9 +43,10 @@ app.onOffChanged = function(alarmNum)
 }
 
 // oldDate format: 22020-02-02T10:55:50-0800
-app.updateClock = function(oldDate)
+app.updateClock = function(oldDateStr)
 {
-	var oldDate = new Date(oldDate); // TODO: fix this
+	console.log("oldDateStr: " + oldDateStr);
+	var oldDate = new Date(oldDateStr);
 	var date = new Date();
 	var y2k = Math.round((new Date(2000, 0, 1, 0, 0, 0)).getTime() / 1000);
 	var secondsSinceEpoch = Math.round(date.getTime() / 1000);
@@ -57,13 +58,24 @@ app.updateClock = function(oldDate)
 	if(oldDate.getTime() > date.getTime()){
 		var dif = oldDate.getTime() - date.getTime();
 		var difSeconds = Math.abs(dif / 1000);
-		console.log("RTC is fast: " + difSeconds + " seconds");
+		var timeMessage = "Hungry Cat clock was fast: " + difSeconds + "s";
+		console.log(timeMessage);
+		$('#deviceClock').text(timeMessage);
 	}
-	else {
+	else if(oldDate.getTime() < date.getTime()) {
 		var dif = date.getTime() - oldDate.getTime();
 		var difSeconds = Math.abs(dif / 1000);
-		console.log("RTC is slow: " + difSeconds + " seconds");
+		var timeMessage = "Hungry Cat clock was slow: " + difSeconds + "s";
+		console.log(timeMessage);
+		$('#deviceClock').text(timeMessage);
 	}
+	else {
+		var timeMessage = "Hungry Cat clock matched phone time.";
+		console.log(timeMessage);
+		$('#deviceClock').text(timeMessage);
+	}
+
+	//;
 }
 
 app.sendMessageBle = function(message)
@@ -264,29 +276,30 @@ app.startScan = function()
 app.receivedMessage = function(data)
 {
 	var alarmRegex = /alarm (\d) (\d+):(\d+) (\d)/; // alarm 2 18:30 1
-	var nowRegex = /\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d/; //2020-02-02T10:55:50
+	var nowRegex = /(\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d)/; //2020-02-02T10:55:50
 
 	if (app.connected)
 	{
 		// Convert data to String
 		var message = String.fromCharCode.apply(null, new Uint8Array(data));
-		var matches = message.match(alarmRegex);
+		var alarmMatches = message.match(alarmRegex);
+		var dateMatch = message.match(nowRegex);
 
-		if(matches != null){
-			var alarmNum = matches[1];
-			var hour = ('00'+matches[2]).slice(-2);
-			var minute = ('00'+matches[3]).slice(-2);
-			var isEnabled = matches[4];
+		if(alarmMatches != null){
+			var alarmNum = alarmMatches[1];
+			var hour = ('00'+alarmMatches[2]).slice(-2);
+			var minute = ('00'+alarmMatches[3]).slice(-2);
+			var isEnabled = alarmMatches[4];
 			var time = hour + ":" + minute;
 
 			$('#time' + alarmNum).val(time);
 			$('#onOff' + alarmNum).val(isEnabled);
 			console.log("found alarm "  + alarmNum + " is " + time + " isEnabled:" + isEnabled);
 		}
-		else if(message.match(nowRegex) != null){
-			$('#deviceClock').text(message);
-			console.log('found rtc is ' + message);
-			app.updateClock(message + "-0800"); // Assuming PST for now, but this should be changed to UTC
+		else if(dateMatch != null){
+			var dateStr = dateMatch[1] + "-0800";
+			console.log('found rtc is ' + dateStr);
+			app.updateClock(dateStr); // Assuming PST for now, but this should be changed to UTC
 		}
 
 		// deviceClock
