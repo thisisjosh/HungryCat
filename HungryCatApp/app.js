@@ -1,4 +1,4 @@
-// Based on https://github.com/evothings/evothings-examples/tree/master/examples/redbearlab-simplechat
+// This app is based on https://github.com/evothings/evothings-examples/tree/master/examples/redbearlab-simplechat
 
 document.addEventListener(
 	'deviceready',
@@ -107,9 +107,6 @@ app.sendMessageBle = function(message)
 			// Write debug information to console
 			console.log('Error - No device connected.');
 		};
-
-		// Update conversation with message
-		// app.updateConversation(message, false);
 
 		// Convert message
 		var data = new Uint8Array(message.length);
@@ -326,35 +323,6 @@ app.receivedMessage = function(data)
 	}
 };
 
-app.updateConversation = function(message, isRemoteMessage)
-{
-	// Insert message into DOM model.
-	var timeStamp = new Date().toLocaleString();
-
-	var htmlString =
-		'<div class="messageContainer">' +
-			'<div class="messageTimestamp">' +
-				'<p class="messageTimestamp">' + timeStamp + '</p>' +
-			'</div>' +
-			'<div class="messageIcon">' +
-				'<img class="messageIcon" src="img/' +
-					(isRemoteMessage == true ? 'arduino.png' : 'apple.png') + '">' +
-			'</div>' +
-			'<div class="message">' +
-				'<p class="message">' + message +'</p>'+
-			'</div>' +
-		'</div>';
-
-	$('#conversation').append($(htmlString));
-
-	$('html,body').animate(
-		{
-			scrollTop: $('#disconnectButton').offset().top
-		},
-		'slow'
-	);
-};
-
 app.disconnect = function(errorMessage)
 {
 	if (errorMessage)
@@ -374,7 +342,6 @@ app.disconnect = function(errorMessage)
 	$('#loadingView').hide();
 	$('#scanResultView').hide();
 	$('#scanResultView').empty();
-	$('#conversation').empty();
 	$('#conversationView').hide();
 
 	$('#startView').show();

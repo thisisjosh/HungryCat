@@ -24,12 +24,10 @@
 	<header>
 		<button class="back" onclick="history.back()">
 			<img src="ui/images/arrow-left.svg" />
-		</button> <!-- <img class="logotype" src="ui/images/logo.svg" alt="Evothings" /> -->
 	</header>
 	<h1>Hungry Cat App</h1>
 
 	<div id="startView">
-		<!-- <img class="center" src="img/RedBearLab.jpg"> -->
 		<button class="red wide" onclick="app.startScan()">Scan for HungryCat</button>
 	</div>
 	<div id="scanResultView" style="display:none"></div>
@@ -68,13 +66,10 @@
 		</div>
 
 		<div id="deviceClock"></div>
-		Adjust Steps <input type="number" id="steps" size="6" style="width: 100px;">
+		Adjust Steps <input type="number" id="steps" size="6" style="width: 100px;" value="25">
 		<button id="adjustButtonLeft" class="green" onclick="app.adjustLeft()">Left</button>
 		<button id="adjustButtonRight" class="green" onclick="app.adjustRight()">Right</button>
 		<button id="disconnectButton" class="red wide" onclick="app.disconnect()">Disconnect</button>
-
-		<div id="conversationControl" style="width:100%"></div>
-		<div id="conversation"></div>
 	</div>
 
 	<div id="loadingView" style="display:none">
