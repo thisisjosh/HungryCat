@@ -74,8 +74,20 @@ app.updateClock = function(oldDateStr)
 		console.log(timeMessage);
 		$('#deviceClock').text(timeMessage);
 	}
+}
 
-	//;
+app.adjustLeft = function()
+{
+	var steps = document.getElementById("steps").value;
+	console.log("adjust left " + steps);
+	app.sendMessageBle("l" + steps);
+}
+
+app.adjustRight = function()
+{
+	var steps = document.getElementById("steps").value;
+	console.log("adjust right " + steps);
+	app.sendMessageBle("r" + steps);
 }
 
 app.sendMessageBle = function(message)
@@ -301,11 +313,6 @@ app.receivedMessage = function(data)
 			console.log('found rtc is ' + dateStr);
 			app.updateClock(dateStr); // Assuming PST for now, but this should be changed to UTC
 		}
-
-		// deviceClock
-
-		// Update conversation
-		// app.updateConversation(message, true);
 
 		console.log('Message received: ' + message);
 	}
