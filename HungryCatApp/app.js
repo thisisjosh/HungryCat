@@ -1,3 +1,4 @@
+// https://github.com/thisisjosh/HungryCat
 // This app is based on https://github.com/evothings/evothings-examples/tree/master/examples/redbearlab-simplechat
 
 document.addEventListener(
