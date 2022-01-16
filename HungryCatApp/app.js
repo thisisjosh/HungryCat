@@ -81,28 +81,28 @@ app.adjustLeft = function()
 {
 	var steps = document.getElementById("steps").value;
 	console.log("adjust left " + steps);
-	app.sendMessageBle("l" + steps);
+	app.sendMessageBle("left " + steps);
 }
 
 app.adjustRight = function()
 {
 	var steps = document.getElementById("steps").value;
 	console.log("adjust right " + steps);
-	app.sendMessageBle("r" + steps);
+	app.sendMessageBle("right " + steps);
 }
 
 app.setLeft = function()
 {
 	var steps = document.getElementById("steps").value;
 	console.log("set left " + steps);
-	app.sendMessageBle("sl" + steps);
+	app.sendMessageBle("setleft " + steps);
 }
 
 app.setRight = function()
 {
 	var steps = document.getElementById("steps").value;
 	console.log("set right " + steps);
-	app.sendMessageBle("sr" + steps);
+	app.sendMessageBle("setright " + steps);
 }
 
 app.sendMessageBle = function(message)
