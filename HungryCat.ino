@@ -1,9 +1,11 @@
 // https://github.com/thisisjosh/HungryCat
 
 //"RBL_nRF8001.h/spi.h/boards.h" is needed in every new project
+// follow https://github.com/RedBearLab/BLEShield/blob/master/Docs/LibraryManager.pdf
+// use "no new line" when sending commands using the Serial Monitor window
 #include <SPI.h>
 #include <EEPROM.h>
-#include <boards.h>
+#include <Boards.h>
 #include <RBL_nRF8001.h>
 #include <Regexp.h> // https://www.arduinolibraries.info/libraries/regexp
 #include <Stepper.h>
@@ -22,6 +24,8 @@ const int BUF_SIZE = 32;
 const int MAX_ALARMS = 4;
 int speed = 10;
 int sliceSteps = 255;
+int alarmStepsLeft = 0;
+int alarmStepsRight = 0;
 SimpleAlarm alarms[MAX_ALARMS];
 RtcDateTime lastAlarmTriggered;
 
@@ -124,6 +128,9 @@ void setup()
     EEPROM.get(i * sizeof(SimpleAlarm), alarms[i]);
   }
 
+  EEPROM.get(MAX_ALARMS * sizeof(SimpleAlarm), alarmStepsLeft);
+  EEPROM.get(MAX_ALARMS * sizeof(SimpleAlarm)+sizeof(int), alarmStepsRight);
+ 
   myStepper.setSpeed(speed);
   setupRtc();
 
@@ -232,7 +239,10 @@ void doAlarms()
     if(alarms[i].isActive == true && alarms[i].hour == now.Hour() && alarms[i].minute == now.Minute())
     {
       out(String("Alarm Triggered ") + i);
-      myStepper.step(sliceSteps);
+      myStepper.step(alarmStepsLeft);
+      delay(500);
+      lowStepper();
+      myStepper.step(alarmStepsRight);
       delay(500);
       lowStepper();
       lastAlarmTriggered = now;
@@ -275,6 +285,8 @@ void handleInput(char* buf)
   {
     listAlarms();
     showCurrentTime();
+    out(String("alarmStepsLeft:") + alarmStepsLeft);
+    out(String("alarmStepsRight:") + alarmStepsRight);
   }
   else if(strcmp(buf, "now") == 0)
   {
@@ -286,7 +298,7 @@ void handleInput(char* buf)
     slot = atoi(bufMatch);
     removeAlarm(slot);
   }
-  else if( ms.Match("l(%d+)", 0) == REGEXP_MATCHED)
+  else if( ms.Match("left (%d+)", 0) == REGEXP_MATCHED)
   {
     ms.GetCapture(bufMatch, 0);
     steps = atoi(bufMatch);
@@ -295,7 +307,7 @@ void handleInput(char* buf)
     delay(500);
     lowStepper();
   }
-  else if( ms.Match("r(%d+)", 0) == REGEXP_MATCHED)
+  else if( ms.Match("right (%d+)", 0) == REGEXP_MATCHED)
   {
     ms.GetCapture(bufMatch, 0);
     steps = -1 * atoi(bufMatch);
@@ -303,6 +315,20 @@ void handleInput(char* buf)
     myStepper.step(steps);
     delay(500);
     lowStepper();
+  }
+  else if( ms.Match("leftset (%d+)", 0) == REGEXP_MATCHED)
+  {
+    ms.GetCapture(bufMatch, 0);
+    alarmStepsLeft = atoi(bufMatch);
+    out(String("Set left ") + alarmStepsLeft);
+    EEPROM.put(MAX_ALARMS * sizeof(SimpleAlarm), alarmStepsLeft);
+  }
+  else if( ms.Match("rightset (%d+)", 0) == REGEXP_MATCHED)
+  {
+    ms.GetCapture(bufMatch, 0);
+    alarmStepsRight = -1 * atoi(bufMatch);
+    out(String("Set right ") + alarmStepsRight);
+    EEPROM.put(MAX_ALARMS * sizeof(SimpleAlarm)+sizeof(int), alarmStepsRight);
   }
   else if( ms.Match("s(%d+)", 0) == REGEXP_MATCHED)
   {
@@ -336,7 +362,7 @@ void handleInput(char* buf)
   }
   else
   {
-    String msg = String("unknown command: ") + buf;
+    String msg = String("unknown command: <") + buf + String(">");
     out(msg);
   }
 }
@@ -371,4 +397,3 @@ void loop()
  // digitalWrite(activeLed, HIGH);
   delay(500);
 }
-
