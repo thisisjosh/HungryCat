@@ -102,7 +102,7 @@ app.setRight = function()
 {
 	var steps = document.getElementById("steps").value;
 	console.log("set right " + steps);
-	app.sendMessageBle("righset " + steps);
+	app.sendMessageBle("rightset " + steps);
 }
 
 app.sendMessageBle = function(message)
