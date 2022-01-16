@@ -95,14 +95,14 @@ app.setLeft = function()
 {
 	var steps = document.getElementById("steps").value;
 	console.log("set left " + steps);
-	app.sendMessageBle("setleft " + steps);
+	app.sendMessageBle("leftset " + steps);
 }
 
 app.setRight = function()
 {
 	var steps = document.getElementById("steps").value;
 	console.log("set right " + steps);
-	app.sendMessageBle("setright " + steps);
+	app.sendMessageBle("righset " + steps);
 }
 
 app.sendMessageBle = function(message)
