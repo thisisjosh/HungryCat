@@ -91,6 +91,20 @@ app.adjustRight = function()
 	app.sendMessageBle("r" + steps);
 }
 
+app.setLeft = function()
+{
+	var steps = document.getElementById("steps").value;
+	console.log("set left " + steps);
+	app.sendMessageBle("sl" + steps);
+}
+
+app.setRight = function()
+{
+	var steps = document.getElementById("steps").value;
+	console.log("set right " + steps);
+	app.sendMessageBle("sr" + steps);
+}
+
 app.sendMessageBle = function(message)
 {
 	if (app.connected)
