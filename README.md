@@ -5,5 +5,3 @@ This in an arduino based automated pet food feeder that I am making. Feeding tim
 An EVOthings compatible viewer is needed to run the mobile apps. "CGTek Viewer" works well on iphone.
 
 https://github.com/thisisjosh/HungryCat
-
--Josh
