@@ -3,7 +3,7 @@
 //"RBL_nRF8001.h/spi.h/boards.h" is needed in every new project
 #include <SPI.h>
 #include <EEPROM.h>
-#include <boards.h>
+#include <Boards.h>
 #include <RBL_nRF8001.h>
 #include <Regexp.h> // https://www.arduinolibraries.info/libraries/regexp
 #include <Stepper.h>
@@ -21,7 +21,7 @@ Stepper myStepper(stepsPerRevolution, 2, 4, 3, 5); // https://forum.arduino.cc/i
 const int BUF_SIZE = 32;
 const int MAX_ALARMS = 4;
 int speed = 10;
-int sliceSteps = 255;
+int sliceSteps = 18000;
 SimpleAlarm alarms[MAX_ALARMS];
 RtcDateTime lastAlarmTriggered;
 
@@ -235,6 +235,9 @@ void doAlarms()
       myStepper.step(sliceSteps);
       delay(500);
       lowStepper();
+      myStepper.step(-1 * sliceSteps); // For single time use feeding. Return to the starting position.
+      delay(500);
+      lowStepper();
       lastAlarmTriggered = now;
       break;
     }
@@ -371,4 +374,3 @@ void loop()
  // digitalWrite(activeLed, HIGH);
   delay(500);
 }
-
